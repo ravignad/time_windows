@@ -101,11 +101,10 @@ def get_window(binxs, residuals_histo, trigger_label):
     pedestal, pedestal_error = get_pedestal(binxs, residuals_histo, noise_range)
     plot_pedestal(binxs, residuals_histo, pedestal, trigger_label)
 
-    signal_histo = residuals_histo - pedestal
-    purity_histo = signal_histo / residuals_histo
+    threshold = 1 / (1-BIN_PURITY) * pedestal   # minimum number of counts to select a bin
 
-    mini = np.min(np.nonzero(purity_histo > BIN_PURITY))
-    maxi = np.min(np.nonzero(purity_histo[mini:] < BIN_PURITY)) + mini - 1
+    mini = np.min(np.nonzero(residuals_histo > threshold))
+    maxi = np.min(np.nonzero(residuals_histo[mini:] < threshold)) + mini - 1
 
     bin_width = binxs[1] - binxs[0]
     tlow = binxs[mini] - 0.5 * bin_width
@@ -113,6 +112,7 @@ def get_window(binxs, residuals_histo, trigger_label):
 
     print(f'Acceptance window: ({tlow:.0f}, {thigh:.0f}) ns')
 
+    signal_histo = residuals_histo - pedestal
     selection_window = np.arange(mini, maxi+1)  # include maximum bin
 
     purity = get_purity(signal_histo[selection_window], pedestal)
@@ -123,15 +123,6 @@ def get_window(binxs, residuals_histo, trigger_label):
 
     f_score = 2 * efficiency * purity / (efficiency + purity)
     print(f'F-score: {100*f_score:.2f}%')
-
-    plt.figure()
-    plt.plot(binxs[selection_window], purity_histo[selection_window], drawstyle='steps', lw=0.5)
-    plt.xlabel('Residual (ns)')
-    plt.ylabel('Purity')
-
-    filename = "purity_" + trigger_label + PLOT_TYPE
-    print("Purity plotted in " + filename)
-    plt.savefig(filename)
 
     return tlow, thigh, purity, efficiency
 
