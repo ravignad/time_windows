@@ -8,16 +8,15 @@ import math
 import numpy as np
 import pandas
 import matplotlib.pyplot as plt
-from matplotlib.lines import Line2D
 
 # All times in nanoseconds
 
 # Global constants
 BIN_PURITY = 0.95
 PLOT_TYPE = ".pdf"
-TIME_RANGE = (-5000, 12500)    # Range of the residual histograms
 PEDESTAL_RANGE = (5000, 8000)    # Range to fit the noise pedestal
-NBINS = 700  # Number of bins of the residual histograms
+TIME_RANGE = (-4000, 8000)    # Range of the residual histograms
+NBINS = 480  # Number of bins of the residual histograms
 
 
 def main():
@@ -107,9 +106,6 @@ def main():
 
 def get_window(bin_time, residuals_histo, pedestal, trigger_label):
 
-    # Calculate the pedestal in ns
-    plot_window(bin_time, residuals_histo, pedestal, trigger_label)
-
     threshold = 1 / (1-BIN_PURITY) * pedestal   # minimum number of counts to select a bin
 
     mini = np.min(np.nonzero(residuals_histo > threshold))
@@ -132,6 +128,9 @@ def get_window(bin_time, residuals_histo, pedestal, trigger_label):
 
     f_score = 2 * efficiency * purity / (efficiency + purity)
     print(f'F-score: {100*f_score:.2f}%')
+
+    # Calculate the pedestal in ns
+    plot_window(bin_time, residuals_histo, pedestal, threshold, mini, maxi, trigger_label)
 
     return tlow, thigh, purity, efficiency
 
@@ -192,7 +191,7 @@ def plot_residual(bin_time, histos, pedestals):
     plt.plot(bin_time, histo_th2, drawstyle='steps', lw=0.5, label='Th2')
     plt.plot(bin_time, histo_th1, drawstyle='steps', lw=0.5, label='Th1')
 
-    plt.xlabel('Time residual (ns)')
+    plt.xlabel('Residual time (ns)')
     plt.ylabel('Counts')
 
     plt.legend()
@@ -211,7 +210,7 @@ def plot_residual(bin_time, histos, pedestals):
     plt.plot(bin_time[mask], histo_th2[mask], drawstyle='steps', lw=0.5, label='Th2')
     plt.plot(bin_time[mask], histo_th1[mask], drawstyle='steps', lw=0.5, label='Th1')
 
-    plt.xlabel('Time residual (ns)')
+    plt.xlabel('Residual time (ns)')
     plt.ylabel('Counts')
 
     # Plot fitted pedestals
@@ -226,25 +225,27 @@ def plot_residual(bin_time, histos, pedestals):
     plt.savefig(filename)
 
 
-def plot_window(bin_time, bin_counts, pedestal, trigger_label):
+def plot_window(bin_time, bin_counts, pedestal, threshold, mini, maxi, trigger_label):
 
     plt.figure()
+    ax = plt.gca()
     plt.yscale("log")
 
+    plt.text(0.9, 0.9, trigger_label, fontsize='large', ha='right', transform=ax.transAxes)
+
     plt.plot(bin_time, bin_counts, drawstyle='steps', lw=0.5, label='Data')
+    plt.fill_between(bin_time[mini:maxi], bin_counts[mini:maxi], step="pre", alpha=0.4)
 
-    plt.xlabel('Residual (ns)')
+    x = (bin_time[0], bin_time[-1])
+    p = plt.plot(x, (pedestal, pedestal), lw=0.5, ls='--', label='Pedestal')
+    plt.text(bin_time[mini], 0.9*pedestal, 'Pedestal', fontsize='small', va='top', color=p[0].get_color())
+
+    p = plt.plot(x, (threshold, threshold), lw=0.5, ls='--', label='Threshold')
+    plt.text(0.6, 1.1*threshold, 'Threshold', fontsize='small', color=p[0].get_color(),
+             transform=ax.get_yaxis_transform())
+
+    plt.xlabel('Residual time (ns)')
     plt.ylabel('Counts')
-
-    xmin, xmax = bin_time[0], bin_time[-1]
-    pedestal_line = Line2D((xmin, xmax), (pedestal, pedestal), lw=0.5, color='tab:orange', label='Pedestal')
-
-    ax = plt.gca()
-    ax.add_line(pedestal_line)
-
-    plt.xlim((-5000, 12500))
-
-    plt.legend()
 
     filename = "window_" + trigger_label + PLOT_TYPE
     print("Acceptance window plotted in " + filename)
