@@ -1,5 +1,8 @@
 #!/usr/bin/env python3
 
+# Calculate the time windows to select the SD detectors that participated in the reconstruction of events
+# A difference acceptance window is calculated for the trigger types: ToT, ToTd, MoPS, Th2, and Th1
+
 import sys
 import math
 import numpy as np
@@ -13,7 +16,9 @@ from matplotlib.lines import Line2D
 BIN_PURITY = 0.95
 PLOT_TYPE = ".pdf"
 TIME_RANGE = (-5000, 12500)    # Range of the residual histograms
+NOISE_RANGE = (7500, 12500)    # Range to fit the noise pedestal
 NBINS = 700  # Number of bins of the residual histograms
+
 
 def main():
 
@@ -23,7 +28,7 @@ def main():
 
     # Read  data
     residual_file = sys.argv[1]
-    df = pandas.read_csv(residual_file, names=('event', 'station', 'residual', 'trigger_code') )
+    df = pandas.read_csv(residual_file, names=('event', 'station', 'residual', 'trigger_code'))
 
     # Select 10% of the data to speed up testin
     # df = df.sample(frac=0.1)
@@ -97,8 +102,7 @@ def main():
 def get_window(binxs, residuals_histo, trigger_label):
 
     # Calculate the pedestal in ns
-    noise_range = (7500, 12500)
-    pedestal, pedestal_error = get_pedestal(binxs, residuals_histo, noise_range)
+    pedestal, pedestal_error = get_pedestal(binxs, residuals_histo, NOISE_RANGE)
     plot_pedestal(binxs, residuals_histo, pedestal, trigger_label)
 
     threshold = 1 / (1-BIN_PURITY) * pedestal   # minimum number of counts to select a bin
@@ -127,35 +131,26 @@ def get_window(binxs, residuals_histo, trigger_label):
     return tlow, thigh, purity, efficiency
 
 
-# Map t1code to trigger class (ToT, TH, ToTd, and MoPs)
-# Trigger hierarchy ToT -> ToTd -> MoPs -> TH
+# Map trigger code to the trigger type
+# Trigger hierarchy ToT -> ToTd -> MoPs -> Th2 -> Th1
 def get_trigger_class(trigger_code):
     if trigger_code & 4 != 0:     # bit 3
         return 'ToT'
     elif trigger_code & 8 != 0:  # bit 4
         return 'ToTd'
-    elif trigger_code & 16 != 0: # bit 5
+    elif trigger_code & 16 != 0:  # bit 5
         return 'MoPS'
-    elif trigger_code & 2 != 0: # bit 2
+    elif trigger_code & 2 != 0:  # bit 2
         return 'Th2'
-    elif trigger_code & 1 != 0 :  # bit 1
+    elif trigger_code & 1 != 0:  # bit 1
         return 'Th1'
     else:
         return 'None'
 
-# Get the purity of bin sample given a noise pedestal
-def get_purity(signal_histo, pedestal):
 
-    signal = signal_histo.sum()
-    noise = pedestal * len(signal_histo)
-    purity = signal / (signal+noise)
+def get_pedestal(binxs, histo, time_range):
 
-    return purity
-
-
-def get_pedestal(binxs, histo, range):
-
-    mask = np.all((range[0] < binxs, binxs < range[1]), axis=0)
+    mask = np.all((time_range[0] < binxs, binxs < time_range[1]), axis=0)
     noise_histo = histo[mask]
     pedestal = np.mean(noise_histo)
     nbins = len(noise_histo)
@@ -165,29 +160,14 @@ def get_pedestal(binxs, histo, range):
     return pedestal, pedestal_error
 
 
-def plot_pedestal(binxs, bin_counts, pedestal, trigger_label):
+# Get the purity of a signal histogram given a noise pedestal
+def get_purity(signal_histo, pedestal):
 
-    plt.figure()
-    plt.yscale("log")
+    signal = signal_histo.sum()
+    noise = pedestal * len(signal_histo)
+    purity = signal / (signal+noise)
 
-    plt.plot(binxs, bin_counts, drawstyle='steps', lw=0.5, label='Data')
-
-    plt.xlabel('Residual (ns)')
-    plt.ylabel('Counts')
-
-    xmin, xmax = binxs[0], binxs[-1]
-    pedestal_line = Line2D( (xmin, xmax), (pedestal, pedestal), lw=0.5, color='tab:orange', label='Pedestal')
-
-    ax = plt.gca()
-    ax.add_line(pedestal_line)
-
-    plt.xlim((-5000, 12500))
-
-    plt.legend()
-
-    filename = "residual_" + trigger_label + PLOT_TYPE
-    print("Residuals plotted in " + filename)
-    plt.savefig(filename)
+    return purity
 
 
 def plot_residual(xbin, histo_tot, histo_totd, histo_mops, histo_th2, histo_th1):
@@ -210,6 +190,31 @@ def plot_residual(xbin, histo_tot, histo_totd, histo_mops, histo_th2, histo_th1)
     plt.legend()
     filename = "residual_trigger" + PLOT_TYPE
     print("Residuals plot save in " + filename)
+    plt.savefig(filename)
+
+
+def plot_pedestal(binxs, bin_counts, pedestal, trigger_label):
+
+    plt.figure()
+    plt.yscale("log")
+
+    plt.plot(binxs, bin_counts, drawstyle='steps', lw=0.5, label='Data')
+
+    plt.xlabel('Residual (ns)')
+    plt.ylabel('Counts')
+
+    xmin, xmax = binxs[0], binxs[-1]
+    pedestal_line = Line2D((xmin, xmax), (pedestal, pedestal), lw=0.5, color='tab:orange', label='Pedestal')
+
+    ax = plt.gca()
+    ax.add_line(pedestal_line)
+
+    plt.xlim((-5000, 12500))
+
+    plt.legend()
+
+    filename = "residual_" + trigger_label + PLOT_TYPE
+    print("Residuals plotted in " + filename)
     plt.savefig(filename)
 
 
