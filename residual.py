@@ -16,7 +16,7 @@ from matplotlib.lines import Line2D
 BIN_PURITY = 0.95
 PLOT_TYPE = ".pdf"
 TIME_RANGE = (-5000, 12500)    # Range of the residual histograms
-NOISE_RANGE = (7500, 12500)    # Range to fit the noise pedestal
+PEDESTAL_RANGE = (5000, 8000)    # Range to fit the noise pedestal
 NBINS = 700  # Number of bins of the residual histograms
 
 
@@ -55,30 +55,32 @@ def main():
     nresiduals = ntot + ntotd + nmops + nth2 + nth1
 
     # Bin centers
-    xbin = (bin_edges[:-1]+bin_edges[1:])/2
-
-    # Plot residual histograms
-    plot_residual(xbin, histo_tot, histo_totd, histo_mops, histo_th2, histo_th1)
+    bin_time = (bin_edges[:-1]+bin_edges[1:])/2
 
     print('ToT trigger')
     print(f'Number of ToT: {ntot} ({100*ntot/nresiduals:.1f}%)')
-    tlow_tot, thigh_tot, pur_tot, effi_tot = get_window(xbin, histo_tot, 'ToT')
+    pedestal_tot = get_pedestal(bin_time, histo_tot)
+    tlow_tot, thigh_tot, pur_tot, effi_tot = get_window(bin_time, histo_tot, pedestal_tot, 'ToT')
 
     print('ToTd trigger')
     print(f'Number of ToTd: {ntotd} ({100*ntotd/nresiduals:.1f}%)')
-    tlow_totd, thigh_totd, pur_totd, effi_totd = get_window(xbin, histo_totd, 'ToTd')
+    pedestal_totd = get_pedestal(bin_time, histo_totd)
+    tlow_totd, thigh_totd, pur_totd, effi_totd = get_window(bin_time, histo_totd, pedestal_totd, 'ToTd')
 
     print('MoPS trigger')
     print(f'Number of MoPS: {nmops} ({100*nmops/nresiduals:.1f}%)')
-    tlow_mops, thigh_mops, pur_mops, effi_mops = get_window(xbin, histo_mops, 'MoPS')
+    pedestal_mops = get_pedestal(bin_time, histo_mops)
+    tlow_mops, thigh_mops, pur_mops, effi_mops = get_window(bin_time, histo_mops, pedestal_mops, 'MoPS')
 
     print('T2 Threshold trigger')
     print(f'Number of Th2: {nth2} ({100*nth2/nresiduals:.1f}%)')
-    tlow_th2, thigh_th2, pur_th2, effi_th2 = get_window(xbin, histo_th2, 'Th2')
+    pedestal_th2 = get_pedestal(bin_time, histo_th2)
+    tlow_th2, thigh_th2, pur_th2, effi_th2 = get_window(bin_time, histo_th2, pedestal_th2, 'Th2')
 
     print('T1 Threshold trigger')
     print(f'Number of Th1: {nth1} ({100*nth1/nresiduals:.1f}%)')
-    tlow_th1, thigh_th1, pur_th1, effi_th1 = get_window(xbin, histo_th1, 'Th1')
+    pedestal_th1 = get_pedestal(bin_time, histo_th1)
+    tlow_th1, thigh_th1, pur_th1, effi_th1 = get_window(bin_time, histo_th1, pedestal_th1, 'Th1')
 
     # Global classification performance
 
@@ -96,14 +98,17 @@ def main():
     print(f'Efficiency: {100*efficiency:.2f}%')
     print(f'F-score: {100*f_score:.2f}%')
 
+    # Plot residual histograms
+    plot_residual(bin_time, (histo_tot, histo_totd, histo_mops, histo_th2, histo_th1),
+                  (pedestal_tot, pedestal_totd, pedestal_mops, pedestal_th2, pedestal_th1))
+
     return
 
 
-def get_window(binxs, residuals_histo, trigger_label):
+def get_window(binxs, residuals_histo, pedestal, trigger_label):
 
     # Calculate the pedestal in ns
-    pedestal, pedestal_error = get_pedestal(binxs, residuals_histo, NOISE_RANGE)
-    plot_pedestal(binxs, residuals_histo, pedestal, trigger_label)
+    plot_window(binxs, residuals_histo, pedestal, trigger_label)
 
     threshold = 1 / (1-BIN_PURITY) * pedestal   # minimum number of counts to select a bin
 
@@ -148,16 +153,16 @@ def get_trigger_class(trigger_code):
         return 'None'
 
 
-def get_pedestal(binxs, histo, time_range):
+def get_pedestal(binxs, histo):
 
-    mask = np.all((time_range[0] < binxs, binxs < time_range[1]), axis=0)
+    mask = np.all((PEDESTAL_RANGE[0] < binxs, binxs < PEDESTAL_RANGE[1]), axis=0)
     noise_histo = histo[mask]
     pedestal = np.mean(noise_histo)
     nbins = len(noise_histo)
     pedestal_error = np.std(noise_histo) / math.sqrt(nbins)
     print(f'Pedestal = {pedestal:.1f} ± {pedestal_error:.1f}')
 
-    return pedestal, pedestal_error
+    return pedestal
 
 
 # Get the purity of a signal histogram given a noise pedestal
@@ -170,30 +175,58 @@ def get_purity(signal_histo, pedestal):
     return purity
 
 
-def plot_residual(xbin, histo_tot, histo_totd, histo_mops, histo_th2, histo_th1):
+def plot_residual(bin_time, histos, pedestals):
 
     plt.figure()
     plt.yscale("log")
 
-    plt.plot(xbin, histo_tot, drawstyle='steps', lw=0.5, label='ToT')
-    plt.plot(xbin, histo_totd, drawstyle='steps', lw=0.5, label='ToTd')
-    plt.plot(xbin, histo_mops, drawstyle='steps', lw=0.5, label='MoPS')
-    plt.plot(xbin, histo_th2, drawstyle='steps', lw=0.5, label='Th2')
-    plt.plot(xbin, histo_th1, drawstyle='steps', lw=0.5, label='Th1')
+    histo_tot = histos[0]
+    histo_totd = histos[1]
+    histo_mops = histos[2]
+    histo_th2 = histos[3]
+    histo_th1 = histos[4]
 
-    plt.xlabel('Residual (ns)')
+    plt.plot(bin_time, histo_tot, drawstyle='steps', lw=0.5, label='ToT')
+    plt.plot(bin_time, histo_totd, drawstyle='steps', lw=0.5, label='ToTd')
+    plt.plot(bin_time, histo_mops, drawstyle='steps', lw=0.5, label='MoPS')
+    plt.plot(bin_time, histo_th2, drawstyle='steps', lw=0.5, label='Th2')
+    plt.plot(bin_time, histo_th1, drawstyle='steps', lw=0.5, label='Th1')
+
+    plt.xlabel('Time residual (ns)')
     plt.ylabel('Counts')
 
-    plt.xlim((5000, 15000))
-    # plt.ylim(bottom=10)
+    plt.legend()
+    filename = "residual" + PLOT_TYPE
+    print("Residuals plotted in " + filename)
+    plt.savefig(filename)
+
+    # Plot pedestals
+    plt.figure()
+
+    mask = np.all((PEDESTAL_RANGE[0] < bin_time, bin_time < PEDESTAL_RANGE[1]), axis=0)
+
+    plt.plot(bin_time[mask], histo_tot[mask], drawstyle='steps', lw=0.5, label='ToT')
+    plt.plot(bin_time[mask], histo_totd[mask], drawstyle='steps', lw=0.5, label='ToTd')
+    plt.plot(bin_time[mask], histo_mops[mask], drawstyle='steps', lw=0.5, label='MoPS')
+    plt.plot(bin_time[mask], histo_th2[mask], drawstyle='steps', lw=0.5, label='Th2')
+    plt.plot(bin_time[mask], histo_th1[mask], drawstyle='steps', lw=0.5, label='Th1')
+
+    plt.xlabel('Time residual (ns)')
+    plt.ylabel('Counts')
+
+    # Plot fitted pedestals
+    x = (bin_time[mask][0], bin_time[mask][-1])
+    plt.gca().set_prop_cycle(None)
+    y = np.array([pedestals, pedestals])
+    plt.plot(x, y, lw=0.5)
 
     plt.legend()
-    filename = "residual_trigger" + PLOT_TYPE
-    print("Residuals plot save in " + filename)
+    filename = "pedestal" + PLOT_TYPE
+    print("Pedestals plotted in " + filename)
     plt.savefig(filename)
 
 
-def plot_pedestal(binxs, bin_counts, pedestal, trigger_label):
+def plot_window(binxs, bin_counts, pedestal, trigger_label):
 
     plt.figure()
     plt.yscale("log")
@@ -213,8 +246,8 @@ def plot_pedestal(binxs, bin_counts, pedestal, trigger_label):
 
     plt.legend()
 
-    filename = "residual_" + trigger_label + PLOT_TYPE
-    print("Residuals plotted in " + filename)
+    filename = "window_" + trigger_label + PLOT_TYPE
+    print("Acceptance window plotted in " + filename)
     plt.savefig(filename)
 
 
