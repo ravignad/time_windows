@@ -13,7 +13,7 @@ from matplotlib.lines import Line2D
 BIN_PURITY = 0.95
 PLOT_TYPE = ".pdf"
 TIME_RANGE = (-5000, 12500)    # Range of the residual histograms
-NBINS = 350  # Number of bins of the residual histograms
+NBINS = 700  # Number of bins of the residual histograms
 
 def main():
 
