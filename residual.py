@@ -12,6 +12,8 @@ from matplotlib.lines import Line2D
 # Global constants
 BIN_PURITY = 0.95
 PLOT_TYPE = ".pdf"
+TIME_RANGE = (-5000, 12500)    # Range of the residual histograms
+NBINS = 350  # Number of bins of the residual histograms
 
 def main():
 
@@ -33,27 +35,25 @@ def main():
     # Add trigger class
     df['trigger_class'] = df['trigger_code'].apply(get_trigger_class)
 
-    # Binning data
-    time_range = (-5000, 12500)
-    nbins = 350
-
-    histo_tot, _ = np.histogram(df.loc[df['trigger_class'] == 'ToT', 'residual'], bins=nbins, range=time_range)
-    histo_totd, _ = np.histogram(df.loc[df['trigger_class'] == 'ToTd', 'residual'], bins=nbins, range=time_range)
-    histo_mops, _ = np.histogram(df.loc[df['trigger_class'] == 'MoPS', 'residual'], bins=nbins, range=time_range)
-    histo_th, bin_edges = np.histogram(df.loc[df['trigger_class'] == 'Th', 'residual'], bins=nbins, range=time_range)
+    histo_tot, _ = np.histogram(df.loc[df['trigger_class'] == 'ToT', 'residual'], bins=NBINS, range=TIME_RANGE)
+    histo_totd, _ = np.histogram(df.loc[df['trigger_class'] == 'ToTd', 'residual'], bins=NBINS, range=TIME_RANGE)
+    histo_mops, _ = np.histogram(df.loc[df['trigger_class'] == 'MoPS', 'residual'], bins=NBINS, range=TIME_RANGE)
+    histo_th2, bin_edges = np.histogram(df.loc[df['trigger_class'] == 'Th2', 'residual'], bins=NBINS, range=TIME_RANGE)
+    histo_th1, bin_edges = np.histogram(df.loc[df['trigger_class'] == 'Th1', 'residual'], bins=NBINS, range=TIME_RANGE)
 
     # Count residuals within the time_range
     ntot = histo_tot.sum()
     ntotd = histo_totd.sum()
     nmops = histo_mops.sum()
-    nth = histo_th.sum()
-    nresiduals = ntot + ntotd + nmops + nth
+    nth2 = histo_th2.sum()
+    nth1 = histo_th1.sum()
+    nresiduals = ntot + ntotd + nmops + nth2 + nth1
 
     # Bin centers
     xbin = (bin_edges[:-1]+bin_edges[1:])/2
 
     # Plot residual histograms
-    plot_residual(xbin, histo_th, histo_tot, histo_totd, histo_mops)
+    plot_residual(xbin, histo_tot, histo_totd, histo_mops, histo_th2, histo_th1)
 
     print('ToT trigger')
     print(f'Number of ToT: {ntot} ({100*ntot/nresiduals:.1f}%)')
@@ -67,17 +67,26 @@ def main():
     print(f'Number of MoPS: {nmops} ({100*nmops/nresiduals:.1f}%)')
     tlow_mops, thigh_mops, pur_mops, effi_mops = get_window(xbin, histo_mops, 'MoPS')
 
-    print('Threshold trigger')
-    print(f'Number of TH: {nth} ({100*nth/nresiduals:.1f}%)')
-    tlow_th, thigh_th, pur_th, effi_th = get_window(xbin, histo_th, 'Th')
+    print('T2 Threshold trigger')
+    print(f'Number of Th2: {nth2} ({100*nth2/nresiduals:.1f}%)')
+    tlow_th2, thigh_th2, pur_th2, effi_th2 = get_window(xbin, histo_th2, 'Th2')
+
+    print('T1 Threshold trigger')
+    print(f'Number of Th1: {nth1} ({100*nth1/nresiduals:.1f}%)')
+    tlow_th1, thigh_th1, pur_th1, effi_th1 = get_window(xbin, histo_th1, 'Th1')
 
     # Global classification performance
-    purity = (ntot * pur_tot + ntotd * pur_totd + nmops * pur_mops + nth * pur_th) / nresiduals
-    efficiency = (ntot * effi_tot + ntotd * effi_totd + nmops * effi_mops + nth * effi_th) / nresiduals
+
+    purity = (ntot * pur_tot + ntotd * pur_totd + nmops * pur_mops
+              + nth2 * pur_th2 + nth1 * pur_th1) / nresiduals
+
+    efficiency = (ntot * effi_tot + ntotd * effi_totd + nmops * effi_mops
+                  + nth2 * effi_th2 + nth1 * effi_th1) / nresiduals
+
     f_score = 2 * efficiency * purity / (efficiency + purity)
 
     print('Classification performance')
-    print(f'Number of residuals between {time_range[0]} and {time_range[1]} ns: {nresiduals}')
+    print(f'Number of residuals between {TIME_RANGE[0]} and {TIME_RANGE[1]} ns: {nresiduals}')
     print(f'Purity: {100*purity:.2f}%')
     print(f'Efficiency: {100*efficiency:.2f}%')
     print(f'F-score: {100*f_score:.2f}%')
@@ -96,7 +105,7 @@ def get_window(binxs, residuals_histo, trigger_label):
     purity_histo = signal_histo / residuals_histo
 
     mini = np.min(np.nonzero(purity_histo > BIN_PURITY))
-    maxi = np.max(np.nonzero(purity_histo > BIN_PURITY))
+    maxi = np.min(np.nonzero(purity_histo[mini:] < BIN_PURITY)) + mini - 1
 
     bin_width = binxs[1] - binxs[0]
     tlow = binxs[mini] - 0.5 * bin_width
@@ -136,8 +145,10 @@ def get_trigger_class(trigger_code):
         return 'ToTd'
     elif trigger_code & 16 != 0: # bit 5
         return 'MoPS'
-    elif trigger_code & 3 != 0 :  # bit 1 and 2
-        return 'Th'
+    elif trigger_code & 2 != 0: # bit 2
+        return 'Th2'
+    elif trigger_code & 1 != 0 :  # bit 1
+        return 'Th1'
     else:
         return 'None'
 
@@ -188,15 +199,16 @@ def plot_pedestal(binxs, bin_counts, pedestal, trigger_label):
     plt.savefig(filename)
 
 
-def plot_residual(xbin, histo_th, histo_tot, histo_totd, histo_mops):
+def plot_residual(xbin, histo_tot, histo_totd, histo_mops, histo_th2, histo_th1):
 
     plt.figure()
     plt.yscale("log")
 
-    plt.plot(xbin, histo_th, drawstyle='steps', lw=0.5, label='Th')
     plt.plot(xbin, histo_tot, drawstyle='steps', lw=0.5, label='ToT')
     plt.plot(xbin, histo_totd, drawstyle='steps', lw=0.5, label='ToTd')
     plt.plot(xbin, histo_mops, drawstyle='steps', lw=0.5, label='MoPS')
+    plt.plot(xbin, histo_th2, drawstyle='steps', lw=0.5, label='Th2')
+    plt.plot(xbin, histo_th1, drawstyle='steps', lw=0.5, label='Th1')
 
     plt.xlabel('Residual (ns)')
     plt.ylabel('Counts')
