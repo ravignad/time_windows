@@ -77,6 +77,7 @@ def main():
     f_score = 2 * efficiency * purity / (efficiency + purity)
 
     print('Classification performance')
+    print(f'Number of residuals between {time_range[0]} and {time_range[1]} ns: {nresiduals}')
     print(f'Purity: {100*purity:.2f}%')
     print(f'Efficiency: {100*efficiency:.2f}%')
     print(f'F-score: {100*f_score:.2f}%')
