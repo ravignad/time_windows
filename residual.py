@@ -105,19 +105,19 @@ def main():
     return
 
 
-def get_window(binxs, residuals_histo, pedestal, trigger_label):
+def get_window(bin_time, residuals_histo, pedestal, trigger_label):
 
     # Calculate the pedestal in ns
-    plot_window(binxs, residuals_histo, pedestal, trigger_label)
+    plot_window(bin_time, residuals_histo, pedestal, trigger_label)
 
     threshold = 1 / (1-BIN_PURITY) * pedestal   # minimum number of counts to select a bin
 
     mini = np.min(np.nonzero(residuals_histo > threshold))
     maxi = np.min(np.nonzero(residuals_histo[mini:] < threshold)) + mini - 1
 
-    bin_width = binxs[1] - binxs[0]
-    tlow = binxs[mini] - 0.5 * bin_width
-    thigh = binxs[maxi] + 0.5 * bin_width
+    bin_width = bin_time[1] - bin_time[0]
+    tlow = bin_time[mini] - 0.5 * bin_width
+    thigh = bin_time[maxi] + 0.5 * bin_width
 
     print(f'Acceptance window: ({tlow:.0f}, {thigh:.0f}) ns')
 
@@ -153,9 +153,9 @@ def get_trigger_class(trigger_code):
         return 'None'
 
 
-def get_pedestal(binxs, histo):
+def get_pedestal(binx_time, histo):
 
-    mask = np.all((PEDESTAL_RANGE[0] < binxs, binxs < PEDESTAL_RANGE[1]), axis=0)
+    mask = np.all((PEDESTAL_RANGE[0] < binx_time, binx_time < PEDESTAL_RANGE[1]), axis=0)
     noise_histo = histo[mask]
     pedestal = np.mean(noise_histo)
     nbins = len(noise_histo)
@@ -226,17 +226,17 @@ def plot_residual(bin_time, histos, pedestals):
     plt.savefig(filename)
 
 
-def plot_window(binxs, bin_counts, pedestal, trigger_label):
+def plot_window(bin_time, bin_counts, pedestal, trigger_label):
 
     plt.figure()
     plt.yscale("log")
 
-    plt.plot(binxs, bin_counts, drawstyle='steps', lw=0.5, label='Data')
+    plt.plot(bin_time, bin_counts, drawstyle='steps', lw=0.5, label='Data')
 
     plt.xlabel('Residual (ns)')
     plt.ylabel('Counts')
 
-    xmin, xmax = binxs[0], binxs[-1]
+    xmin, xmax = bin_time[0], bin_time[-1]
     pedestal_line = Line2D((xmin, xmax), (pedestal, pedestal), lw=0.5, color='tab:orange', label='Pedestal')
 
     ax = plt.gca()
