@@ -48,9 +48,6 @@ def main():
     # Plot residual histograms
     plot_residual(xbin, histo_th, histo_tot, histo_totd, histo_mops)
 
-    print('Threshold trigger')
-    window_th = get_window(xbin, histo_th, 'Th')
-
     print('ToT trigger')
     window_tot = get_window(xbin, histo_tot, 'ToT')
 
@@ -59,6 +56,9 @@ def main():
 
     print('MoPS trigger')
     window_mops = get_window(xbin, histo_mops, 'MoPS')
+
+    print('Threshold trigger')
+    window_th = get_window(xbin, histo_th, 'Th')
 
     return
 
@@ -106,16 +106,16 @@ def get_window(binxs, residuals_histo, trigger_label):
 
 
 # Map t1code to trigger class (ToT, TH, ToTd, and MoPs)
-# Trigger hierarchy ToT -> TH -> ToTd -> MoPs
+# Trigger hierarchy ToT -> ToTd -> MoPs -> TH
 def get_trigger_class(trigger_code):
     if trigger_code & 4 != 0:     # bit 3
         return 'ToT'
-    elif trigger_code & 3 != 0 :  # bit 1 and 2
-        return 'Th'
     elif trigger_code & 8 != 0:  # bit 4
         return 'ToTd'
     elif trigger_code & 16 != 0: # bit 5
         return 'MoPS'
+    elif trigger_code & 3 != 0 :  # bit 1 and 2
+        return 'Th'
     else:
         return 'None'
 
