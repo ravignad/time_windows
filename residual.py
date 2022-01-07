@@ -37,10 +37,17 @@ def main():
     time_range = (-5000, 12500)
     nbins = 350
 
-    histo_th, bin_edges = np.histogram(df.loc[df['trigger_class'] == 'Th', 'residual'], bins=nbins, range=time_range)
     histo_tot, _ = np.histogram(df.loc[df['trigger_class'] == 'ToT', 'residual'], bins=nbins, range=time_range)
     histo_totd, _ = np.histogram(df.loc[df['trigger_class'] == 'ToTd', 'residual'], bins=nbins, range=time_range)
     histo_mops, _ = np.histogram(df.loc[df['trigger_class'] == 'MoPS', 'residual'], bins=nbins, range=time_range)
+    histo_th, bin_edges = np.histogram(df.loc[df['trigger_class'] == 'Th', 'residual'], bins=nbins, range=time_range)
+
+    # Count residuals within the time_range
+    ntot = histo_tot.sum()
+    ntotd = histo_totd.sum()
+    nmops = histo_mops.sum()
+    nth = histo_th.sum()
+    nresiduals = ntot + ntotd + nmops + nth
 
     # Bin centers
     xbin = (bin_edges[:-1]+bin_edges[1:])/2
@@ -49,16 +56,30 @@ def main():
     plot_residual(xbin, histo_th, histo_tot, histo_totd, histo_mops)
 
     print('ToT trigger')
-    window_tot = get_window(xbin, histo_tot, 'ToT')
+    print(f'Number of ToT: {ntot} ({100*ntot/nresiduals:.1f}%)')
+    tlow_tot, thigh_tot, pur_tot, effi_tot = get_window(xbin, histo_tot, 'ToT')
 
     print('ToTd trigger')
-    window_totd = get_window(xbin, histo_totd, 'ToTd')
+    print(f'Number of ToTd: {ntotd} ({100*ntotd/nresiduals:.1f}%)')
+    tlow_totd, thigh_totd, pur_totd, effi_totd = get_window(xbin, histo_totd, 'ToTd')
 
     print('MoPS trigger')
-    window_mops = get_window(xbin, histo_mops, 'MoPS')
+    print(f'Number of MoPS: {nmops} ({100*nmops/nresiduals:.1f}%)')
+    tlow_mops, thigh_mops, pur_mops, effi_mops = get_window(xbin, histo_mops, 'MoPS')
 
     print('Threshold trigger')
-    window_th = get_window(xbin, histo_th, 'Th')
+    print(f'Number of TH: {nth} ({100*nth/nresiduals:.1f}%)')
+    tlow_th, thigh_th, pur_th, effi_th = get_window(xbin, histo_th, 'Th')
+
+    # Global classification performance
+    purity = (ntot * pur_tot + ntotd * pur_totd + nmops * pur_mops + nth * pur_th) / nresiduals
+    efficiency = (ntot * effi_tot + ntotd * effi_totd + nmops * effi_mops + nth * effi_th) / nresiduals
+    f_score = 2 * efficiency * purity / (efficiency + purity)
+
+    print('Classification performance')
+    print(f'Purity: {100*purity:.2f}%')
+    print(f'Efficiency: {100*efficiency:.2f}%')
+    print(f'F-score: {100*f_score:.2f}%')
 
     return
 
@@ -102,7 +123,7 @@ def get_window(binxs, residuals_histo, trigger_label):
     print("Purity plotted in " + filename)
     plt.savefig(filename)
 
-    return tlow, thigh, purity, efficiency, f_score
+    return tlow, thigh, purity, efficiency
 
 
 # Map t1code to trigger class (ToT, TH, ToTd, and MoPs)
