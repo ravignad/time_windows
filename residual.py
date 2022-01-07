@@ -90,6 +90,9 @@ def get_window(binxs, residuals_histo, trigger_label):
     efficiency = signal_histo[selection_window].sum() / signal_histo.sum()
     print(f'Efficiency: {100*efficiency:.2f}%')
 
+    f_score = 2 * efficiency * purity / (efficiency + purity)
+    print(f'F-score: {100*f_score:.2f}%')
+
     plt.figure()
     plt.plot(binxs[selection_window], purity_histo[selection_window], drawstyle='steps', lw=0.5)
     plt.xlabel('Residual (ns)')
@@ -99,7 +102,7 @@ def get_window(binxs, residuals_histo, trigger_label):
     print("Purity plotted in " + filename)
     plt.savefig(filename)
 
-    return tlow, thigh, purity, efficiency
+    return tlow, thigh, purity, efficiency, f_score
 
 
 # Map t1code to trigger class (ToT, TH, ToTd, and MoPs)
