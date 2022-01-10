@@ -7,7 +7,6 @@ import sys
 import math
 import numpy as np
 import pandas
-import matplotlib.pyplot as plt
 import json
 
 # All times in nanoseconds
@@ -61,9 +60,10 @@ def main():
     print('ToT trigger')
     print(f'Number of ToT: {ntot} ({100*ntot/nresiduals:.1f}%)')
     pedestal_tot = get_pedestal(bin_time, histo_tot)
-    tlow_tot, thigh_tot, pur_tot, effi_tot = get_window(bin_time, histo_tot, pedestal_tot, 'ToT')
+    threshold_tot, tlow_tot, thigh_tot, pur_tot, effi_tot = get_window(bin_time, histo_tot, pedestal_tot)
 
-    tot_output ={
+    tot_output = {
+        "threshold": threshold_tot,
         "tlow": tlow_tot,
         "thigh": thigh_tot,
         "purity": pur_tot,
@@ -75,9 +75,10 @@ def main():
     print('ToTd trigger')
     print(f'Number of ToTd: {ntotd} ({100*ntotd/nresiduals:.1f}%)')
     pedestal_totd = get_pedestal(bin_time, histo_totd)
-    tlow_totd, thigh_totd, pur_totd, effi_totd = get_window(bin_time, histo_totd, pedestal_totd, 'ToTd')
+    threshold_totd, tlow_totd, thigh_totd, pur_totd, effi_totd = get_window(bin_time, histo_totd, pedestal_totd)
 
-    totd_output ={
+    totd_output = {
+        "threshold": threshold_totd,
         "tlow": tlow_totd,
         "thigh": thigh_totd,
         "purity": pur_totd,
@@ -89,9 +90,10 @@ def main():
     print('MoPS trigger')
     print(f'Number of MoPS: {nmops} ({100*nmops/nresiduals:.1f}%)')
     pedestal_mops = get_pedestal(bin_time, histo_mops)
-    tlow_mops, thigh_mops, pur_mops, effi_mops = get_window(bin_time, histo_mops, pedestal_mops, 'MoPS')
+    threshold_mops, tlow_mops, thigh_mops, pur_mops, effi_mops = get_window(bin_time, histo_mops, pedestal_mops)
 
-    mops_output ={
+    mops_output = {
+        "threshold": threshold_mops,
         "tlow": tlow_mops,
         "thigh": thigh_mops,
         "purity": pur_mops,
@@ -103,9 +105,10 @@ def main():
     print('T2 Threshold trigger')
     print(f'Number of Th2: {nth2} ({100*nth2/nresiduals:.1f}%)')
     pedestal_th2 = get_pedestal(bin_time, histo_th2)
-    tlow_th2, thigh_th2, pur_th2, effi_th2 = get_window(bin_time, histo_th2, pedestal_th2, 'Th2')
+    threshold_th2, tlow_th2, thigh_th2, pur_th2, effi_th2 = get_window(bin_time, histo_th2, pedestal_th2)
 
-    th2_output ={
+    th2_output = {
+        "threshold": threshold_th2,
         "tlow": tlow_th2,
         "thigh": thigh_th2,
         "purity": pur_th2,
@@ -117,9 +120,10 @@ def main():
     print('T1 Threshold trigger')
     print(f'Number of Th1: {nth1} ({100*nth1/nresiduals:.1f}%)')
     pedestal_th1 = get_pedestal(bin_time, histo_th1)
-    tlow_th1, thigh_th1, pur_th1, effi_th1 = get_window(bin_time, histo_th1, pedestal_th1, 'Th1')
+    threshold_th1, tlow_th1, thigh_th1, pur_th1, effi_th1 = get_window(bin_time, histo_th1, pedestal_th1)
 
-    th1_output ={
+    th1_output = {
+        "threshold": threshold_th1,
         "tlow": tlow_th1,
         "thigh": thigh_th1,
         "purity": pur_th1,
@@ -163,7 +167,7 @@ def main():
     return
 
 
-def get_window(bin_time, residuals_histo, pedestal, trigger_label):
+def get_window(bin_time, residuals_histo, pedestal):
 
     threshold = 1 / (1-BIN_PURITY) * pedestal   # minimum number of counts to select a bin
 
@@ -188,10 +192,7 @@ def get_window(bin_time, residuals_histo, pedestal, trigger_label):
     f_score = 2 * efficiency * purity / (efficiency + purity)
     print(f'F-score: {100*f_score:.2f}%')
 
-    # Calculate the pedestal in ns
-    plot_window(bin_time, residuals_histo, pedestal, threshold, mini, maxi, trigger_label)
-
-    return tlow, thigh, purity, efficiency
+    return threshold, tlow, thigh, purity, efficiency
 
 
 # Map trigger code to the trigger type
@@ -231,33 +232,6 @@ def get_purity(signal_histo, pedestal):
     purity = signal / (signal+noise)
 
     return purity
-
-
-def plot_window(bin_time, bin_counts, pedestal, threshold, mini, maxi, trigger_label):
-
-    plt.figure()
-    ax = plt.gca()
-    plt.yscale("log")
-
-    plt.text(0.9, 0.9, trigger_label, fontsize='large', ha='right', transform=ax.transAxes)
-
-    plt.plot(bin_time, bin_counts, drawstyle='steps', lw=0.5, label='Data')
-    plt.fill_between(bin_time[mini:maxi], bin_counts[mini:maxi], step="pre", alpha=0.4)
-
-    x = (bin_time[0], bin_time[-1])
-    p = plt.plot(x, (pedestal, pedestal), lw=0.5, ls='--', label='Pedestal')
-    plt.text(bin_time[mini], 0.9*pedestal, 'Pedestal', fontsize='small', va='top', color=p[0].get_color())
-
-    p = plt.plot(x, (threshold, threshold), lw=0.5, ls='--', label='Threshold')
-    plt.text(0.6, 1.1*threshold, 'Threshold', fontsize='small', color=p[0].get_color(),
-             transform=ax.get_yaxis_transform())
-
-    plt.xlabel('Residual time (ns)')
-    plt.ylabel('Counts')
-
-    filename = "window_" + trigger_label + PLOT_TYPE
-    print("Acceptance window plotted in " + filename)
-    plt.savefig(filename)
 
 
 # Run starts here
