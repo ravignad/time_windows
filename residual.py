@@ -22,12 +22,13 @@ NBINS = 480  # Number of bins of the residual histograms
 
 def main():
 
-    if len(sys.argv) != 2:
-        print("Usage " + sys.argv[0] + " [residual file]")
+    if len(sys.argv) != 3:
+        print("Usage " + sys.argv[0] + " [residual file] [json output file")
         exit(1)
 
     # Read  data
     residual_file = sys.argv[1]
+    output_filename = sys.argv[2]
     df = pandas.read_csv(residual_file, names=('event', 'station', 'residual', 'trigger_code'))
 
     # Select 10% of the data to speed up testin
@@ -67,7 +68,6 @@ def main():
         "thigh": thigh_tot,
         "purity": pur_tot,
         "efficiency": effi_tot,
-        "bin_time": bin_time.tolist(),
         "histo": histo_tot.tolist(),
         "pedestal": pedestal_tot,
     }
@@ -82,7 +82,6 @@ def main():
         "thigh": thigh_totd,
         "purity": pur_totd,
         "efficiency": effi_totd,
-        "bin_time": bin_time.tolist(),
         "histo": histo_totd.tolist(),
         "pedestal": pedestal_totd,
     }
@@ -97,7 +96,6 @@ def main():
         "thigh": thigh_mops,
         "purity": pur_mops,
         "efficiency": effi_mops,
-        "bin_time": bin_time.tolist(),
         "histo": histo_mops.tolist(),
         "pedestal": pedestal_mops,
     }
@@ -112,7 +110,6 @@ def main():
         "thigh": thigh_th2,
         "purity": pur_th2,
         "efficiency": effi_th2,
-        "bin_time": bin_time.tolist(),
         "histo": histo_th2.tolist(),
         "pedestal": pedestal_th2,
     }
@@ -127,7 +124,6 @@ def main():
         "thigh": thigh_th1,
         "purity": pur_th1,
         "efficiency": effi_th1,
-        "bin_time": bin_time.tolist(),
         "histo": histo_th1.tolist(),
         "pedestal": pedestal_th1,
     }
@@ -149,6 +145,8 @@ def main():
     print(f'F-score: {100*f_score:.2f}%')
 
     json_output = {
+        "bin_time": bin_time.tolist(),
+        "pedestal_range": PEDESTAL_RANGE,
         "purity": purity,
         "efficiency": efficiency,
         "f_score": f_score,
@@ -159,14 +157,8 @@ def main():
         "th1": th1_output
     }
 
-    with open("residual.json", "w") as output_file:
+    with open(output_filename, "w") as output_file:
         json.dump(json_output, output_file)
-
-    # Plot residual histograms
-    plot_residual(bin_time, (histo_tot, histo_totd, histo_mops, histo_th2, histo_th1),
-                  (pedestal_tot, pedestal_totd, pedestal_mops, pedestal_th2, pedestal_th1))
-
-
 
     return
 
@@ -239,57 +231,6 @@ def get_purity(signal_histo, pedestal):
     purity = signal / (signal+noise)
 
     return purity
-
-
-def plot_residual(bin_time, histos, pedestals):
-
-    plt.figure()
-    plt.yscale("log")
-
-    histo_tot = histos[0]
-    histo_totd = histos[1]
-    histo_mops = histos[2]
-    histo_th2 = histos[3]
-    histo_th1 = histos[4]
-
-    plt.plot(bin_time, histo_tot, drawstyle='steps', lw=0.5, label='ToT')
-    plt.plot(bin_time, histo_totd, drawstyle='steps', lw=0.5, label='ToTd')
-    plt.plot(bin_time, histo_mops, drawstyle='steps', lw=0.5, label='MoPS')
-    plt.plot(bin_time, histo_th2, drawstyle='steps', lw=0.5, label='Th2')
-    plt.plot(bin_time, histo_th1, drawstyle='steps', lw=0.5, label='Th1')
-
-    plt.xlabel('Residual time (ns)')
-    plt.ylabel('Counts')
-
-    plt.legend()
-    filename = "residual" + PLOT_TYPE
-    print("Residuals plotted in " + filename)
-    plt.savefig(filename)
-
-    # Plot pedestals
-    plt.figure()
-
-    mask = np.all((PEDESTAL_RANGE[0] < bin_time, bin_time < PEDESTAL_RANGE[1]), axis=0)
-
-    plt.plot(bin_time[mask], histo_tot[mask], drawstyle='steps', lw=0.5, label='ToT')
-    plt.plot(bin_time[mask], histo_totd[mask], drawstyle='steps', lw=0.5, label='ToTd')
-    plt.plot(bin_time[mask], histo_mops[mask], drawstyle='steps', lw=0.5, label='MoPS')
-    plt.plot(bin_time[mask], histo_th2[mask], drawstyle='steps', lw=0.5, label='Th2')
-    plt.plot(bin_time[mask], histo_th1[mask], drawstyle='steps', lw=0.5, label='Th1')
-
-    plt.xlabel('Residual time (ns)')
-    plt.ylabel('Counts')
-
-    # Plot fitted pedestals
-    x = (bin_time[mask][0], bin_time[mask][-1])
-    plt.gca().set_prop_cycle(None)
-    y = np.array([pedestals, pedestals])
-    plt.plot(x, y, lw=0.5)
-
-    plt.legend()
-    filename = "pedestal" + PLOT_TYPE
-    print("Pedestals plotted in " + filename)
-    plt.savefig(filename)
 
 
 def plot_window(bin_time, bin_counts, pedestal, threshold, mini, maxi, trigger_label):
