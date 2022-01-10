@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-
 # Calculate the time windows to select the SD detectors that participated in the reconstruction of events
 # A difference acceptance window is calculated for the trigger types: ToT, ToTd, MoPS, Th2, and Th1
 
