@@ -8,6 +8,7 @@ import math
 import numpy as np
 import pandas
 import matplotlib.pyplot as plt
+import json
 
 # All times in nanoseconds
 
@@ -61,26 +62,76 @@ def main():
     pedestal_tot = get_pedestal(bin_time, histo_tot)
     tlow_tot, thigh_tot, pur_tot, effi_tot = get_window(bin_time, histo_tot, pedestal_tot, 'ToT')
 
+    tot_output ={
+        "tlow": tlow_tot,
+        "thigh": thigh_tot,
+        "purity": pur_tot,
+        "efficiency": effi_tot,
+        "bin_time": bin_time.tolist(),
+        "histo": histo_tot.tolist(),
+        "pedestal": pedestal_tot,
+    }
+
     print('ToTd trigger')
     print(f'Number of ToTd: {ntotd} ({100*ntotd/nresiduals:.1f}%)')
     pedestal_totd = get_pedestal(bin_time, histo_totd)
     tlow_totd, thigh_totd, pur_totd, effi_totd = get_window(bin_time, histo_totd, pedestal_totd, 'ToTd')
+
+    totd_output ={
+        "tlow": tlow_totd,
+        "thigh": thigh_totd,
+        "purity": pur_totd,
+        "efficiency": effi_totd,
+        "bin_time": bin_time.tolist(),
+        "histo": histo_totd.tolist(),
+        "pedestal": pedestal_totd,
+    }
 
     print('MoPS trigger')
     print(f'Number of MoPS: {nmops} ({100*nmops/nresiduals:.1f}%)')
     pedestal_mops = get_pedestal(bin_time, histo_mops)
     tlow_mops, thigh_mops, pur_mops, effi_mops = get_window(bin_time, histo_mops, pedestal_mops, 'MoPS')
 
+    mops_output ={
+        "tlow": tlow_mops,
+        "thigh": thigh_mops,
+        "purity": pur_mops,
+        "efficiency": effi_mops,
+        "bin_time": bin_time.tolist(),
+        "histo": histo_mops.tolist(),
+        "pedestal": pedestal_mops,
+    }
+
     print('T2 Threshold trigger')
     print(f'Number of Th2: {nth2} ({100*nth2/nresiduals:.1f}%)')
     pedestal_th2 = get_pedestal(bin_time, histo_th2)
     tlow_th2, thigh_th2, pur_th2, effi_th2 = get_window(bin_time, histo_th2, pedestal_th2, 'Th2')
 
+    th2_output ={
+        "tlow": tlow_th2,
+        "thigh": thigh_th2,
+        "purity": pur_th2,
+        "efficiency": effi_th2,
+        "bin_time": bin_time.tolist(),
+        "histo": histo_th2.tolist(),
+        "pedestal": pedestal_th2,
+    }
+    
     print('T1 Threshold trigger')
     print(f'Number of Th1: {nth1} ({100*nth1/nresiduals:.1f}%)')
     pedestal_th1 = get_pedestal(bin_time, histo_th1)
     tlow_th1, thigh_th1, pur_th1, effi_th1 = get_window(bin_time, histo_th1, pedestal_th1, 'Th1')
 
+    th1_output ={
+        "tlow": tlow_th1,
+        "thigh": thigh_th1,
+        "purity": pur_th1,
+        "efficiency": effi_th1,
+        "bin_time": bin_time.tolist(),
+        "histo": histo_th1.tolist(),
+        "pedestal": pedestal_th1,
+    }
+    
     # Global classification performance
 
     purity = (ntot * pur_tot + ntotd * pur_totd + nmops * pur_mops
@@ -97,9 +148,25 @@ def main():
     print(f'Efficiency: {100*efficiency:.2f}%')
     print(f'F-score: {100*f_score:.2f}%')
 
+    json_output = {
+        "purity": purity,
+        "efficiency": efficiency,
+        "f_score": f_score,
+        "tot": tot_output,
+        "totd": totd_output,
+        "mops": mops_output,
+        "th2": th2_output,
+        "th1": th1_output
+    }
+
+    with open("residual.json", "w") as output_file:
+        json.dump(json_output, output_file)
+
     # Plot residual histograms
     plot_residual(bin_time, (histo_tot, histo_totd, histo_mops, histo_th2, histo_th1),
                   (pedestal_tot, pedestal_totd, pedestal_mops, pedestal_th2, pedestal_th1))
+
+
 
     return
 
