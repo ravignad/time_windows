@@ -1,5 +1,5 @@
 # Calculate the time windows to select the SD detectors that participated in the reconstruction of events
-# A difference acceptance window is calculated for the trigger types: ToT, ToTd, MoPS, Th2, and Th1
+# A difference selection window is calculated for the trigger types: ToT, ToTd, MoPS, Th2, and Th1
 
 import sys
 import math
@@ -169,14 +169,13 @@ def get_window(bin_time, residuals_histo, pedestal):
 
     threshold = 1 / (1-BIN_PURITY) * pedestal   # minimum number of counts to select a bin
 
-    mini = np.min(np.nonzero(residuals_histo > threshold))
-    maxi = np.min(np.nonzero(residuals_histo[mini:] < threshold)) + mini - 1
+    mini, maxi = find_limits(residuals_histo, threshold)
 
     bin_width = bin_time[1] - bin_time[0]
     tlow = bin_time[mini] - 0.5 * bin_width
     thigh = bin_time[maxi] + 0.5 * bin_width
 
-    print(f'Acceptance window: ({tlow:.0f}, {thigh:.0f}) ns')
+    print(f'Selection window: ({tlow:.0f}, {thigh:.0f}) ns')
 
     signal_histo = residuals_histo - pedestal
     selection_window = np.arange(mini, maxi+1)  # include maximum bin
@@ -191,6 +190,24 @@ def get_window(bin_time, residuals_histo, pedestal):
     print(f'F-score: {100*f_score:.2f}%')
 
     return threshold, tlow, thigh, purity, efficiency
+
+
+# Find the bins for the selection window
+# Return: index of the minimum and maximum bins of the selection window
+def find_limits(residuals_histo, threshold):
+
+    max_bin = np.argmax(residuals_histo)
+    i = max_bin
+    while residuals_histo[i] > threshold:
+        i -= 1
+    mini = i+1
+
+    j = max_bin
+    while residuals_histo[j] > threshold:
+        j += 1
+    maxi = j-1
+
+    return mini, maxi
 
 
 # Map trigger code to the trigger type
