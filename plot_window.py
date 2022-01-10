@@ -34,7 +34,7 @@ def plot_window(bin_time, bin_counts, pedestal, threshold, tlow, thigh, trigger_
     plt.ylabel('Counts')
 
     filename = "window_" + trigger_label.lower() + PLOT_TYPE
-    print("Acceptance window plotted in " + filename)
+    print("Selection window plotted in " + filename)
     plt.savefig(filename)
 
 
