@@ -19,7 +19,7 @@ PEDESTAL_RANGE = {"tot": (5000, 8000),
                   "th1": (5000, 8000),
                   }
 TIME_RANGE = (-6000, 12000)    # Range of the residual histograms
-NBINS = 480  # Number of bins of the residual histograms
+BIN_WIDTH = 25  # Bin width of the residual histograms
 
 
 def main():
@@ -43,11 +43,13 @@ def main():
     # Add trigger class
     df['trigger_class'] = df['trigger_code'].apply(get_trigger_class)
 
-    histo_tot, bin_edges = np.histogram(df.loc[df['trigger_class'] == 'ToT', 'residual'], bins=NBINS, range=TIME_RANGE)
-    histo_totd, _ = np.histogram(df.loc[df['trigger_class'] == 'ToTd', 'residual'], bins=NBINS, range=TIME_RANGE)
-    histo_mops, _ = np.histogram(df.loc[df['trigger_class'] == 'MoPS', 'residual'], bins=NBINS, range=TIME_RANGE)
-    histo_th2, _ = np.histogram(df.loc[df['trigger_class'] == 'Th2', 'residual'], bins=NBINS, range=TIME_RANGE)
-    histo_th1, _ = np.histogram(df.loc[df['trigger_class'] == 'Th1', 'residual'], bins=NBINS, range=TIME_RANGE)
+    bin_edges = np.arange(start=TIME_RANGE[0], stop=TIME_RANGE[1], step=BIN_WIDTH)
+
+    histo_tot, _ = np.histogram(df.loc[df['trigger_class'] == 'ToT', 'residual'], bins=bin_edges)
+    histo_totd, _ = np.histogram(df.loc[df['trigger_class'] == 'ToTd', 'residual'], bins=bin_edges)
+    histo_mops, _ = np.histogram(df.loc[df['trigger_class'] == 'MoPS', 'residual'], bins=bin_edges)
+    histo_th2, _ = np.histogram(df.loc[df['trigger_class'] == 'Th2', 'residual'], bins=bin_edges)
+    histo_th1, _ = np.histogram(df.loc[df['trigger_class'] == 'Th1', 'residual'], bins=bin_edges)
 
     # Count residuals within the time_range
     ntot = histo_tot.sum()
