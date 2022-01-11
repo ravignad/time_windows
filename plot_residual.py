@@ -12,7 +12,7 @@ PLOT_TYPE = ".pdf"
 def main():
 
     if len(sys.argv) != 2:
-        print("Usage " + sys.argv[0] + " [json input file")
+        print("Usage " + sys.argv[0] + " [json input file]")
         exit(1)
 
     # Read  data

@@ -20,7 +20,7 @@ NBINS = 480  # Number of bins of the residual histograms
 def main():
 
     if len(sys.argv) != 3:
-        print("Usage " + sys.argv[0] + " [residual file] [json output file")
+        print("Usage " + sys.argv[0] + " [residual file] [json output file]")
         exit(1)
 
     # Read  data
