@@ -12,8 +12,13 @@ import json
 # Global constants
 BIN_PURITY = 0.95
 PLOT_TYPE = ".pdf"
-PEDESTAL_RANGE = (5000, 8000)    # Range to fit the noise pedestal
-TIME_RANGE = (-4000, 8000)    # Range of the residual histograms
+PEDESTAL_RANGE = {"tot": (5000, 8000),
+                  "totd": (9000, 12000),
+                  "mops": (9000, 12000),
+                  "th2": (5000, 8000),
+                  "th1": (5000, 8000),
+                  }
+TIME_RANGE = (-6000, 12000)    # Range of the residual histograms
 NBINS = 480  # Number of bins of the residual histograms
 
 
@@ -57,7 +62,7 @@ def main():
 
     print('ToT trigger')
     print(f'Number of ToT: {ntot} ({100*ntot/nresiduals:.1f}%)')
-    pedestal_tot = get_pedestal(bin_time, histo_tot)
+    pedestal_tot = get_pedestal(bin_time, histo_tot, PEDESTAL_RANGE["tot"])
     threshold_tot, tlow_tot, thigh_tot, pur_tot, effi_tot = get_window(bin_time, histo_tot, pedestal_tot)
 
     tot_output = {
@@ -68,11 +73,12 @@ def main():
         "efficiency": effi_tot,
         "histo": histo_tot.tolist(),
         "pedestal": pedestal_tot,
+        "pedestal_range": PEDESTAL_RANGE["tot"]
     }
 
     print('ToTd trigger')
     print(f'Number of ToTd: {ntotd} ({100*ntotd/nresiduals:.1f}%)')
-    pedestal_totd = get_pedestal(bin_time, histo_totd)
+    pedestal_totd = get_pedestal(bin_time, histo_totd, PEDESTAL_RANGE["totd"])
     threshold_totd, tlow_totd, thigh_totd, pur_totd, effi_totd = get_window(bin_time, histo_totd, pedestal_totd)
 
     totd_output = {
@@ -83,11 +89,12 @@ def main():
         "efficiency": effi_totd,
         "histo": histo_totd.tolist(),
         "pedestal": pedestal_totd,
+        "pedestal_range": PEDESTAL_RANGE["totd"]
     }
 
     print('MoPS trigger')
     print(f'Number of MoPS: {nmops} ({100*nmops/nresiduals:.1f}%)')
-    pedestal_mops = get_pedestal(bin_time, histo_mops)
+    pedestal_mops = get_pedestal(bin_time, histo_mops, PEDESTAL_RANGE["mops"])
     threshold_mops, tlow_mops, thigh_mops, pur_mops, effi_mops = get_window(bin_time, histo_mops, pedestal_mops)
 
     mops_output = {
@@ -98,11 +105,12 @@ def main():
         "efficiency": effi_mops,
         "histo": histo_mops.tolist(),
         "pedestal": pedestal_mops,
+        "pedestal_range": PEDESTAL_RANGE["mops"]
     }
 
     print('T2 Threshold trigger')
     print(f'Number of Th2: {nth2} ({100*nth2/nresiduals:.1f}%)')
-    pedestal_th2 = get_pedestal(bin_time, histo_th2)
+    pedestal_th2 = get_pedestal(bin_time, histo_th2, PEDESTAL_RANGE["th2"])
     threshold_th2, tlow_th2, thigh_th2, pur_th2, effi_th2 = get_window(bin_time, histo_th2, pedestal_th2)
 
     th2_output = {
@@ -113,11 +121,12 @@ def main():
         "efficiency": effi_th2,
         "histo": histo_th2.tolist(),
         "pedestal": pedestal_th2,
+        "pedestal_range": PEDESTAL_RANGE["th2"]
     }
     
     print('T1 Threshold trigger')
     print(f'Number of Th1: {nth1} ({100*nth1/nresiduals:.1f}%)')
-    pedestal_th1 = get_pedestal(bin_time, histo_th1)
+    pedestal_th1 = get_pedestal(bin_time, histo_th1, PEDESTAL_RANGE["th1"])
     threshold_th1, tlow_th1, thigh_th1, pur_th1, effi_th1 = get_window(bin_time, histo_th1, pedestal_th1)
 
     th1_output = {
@@ -128,6 +137,7 @@ def main():
         "efficiency": effi_th1,
         "histo": histo_th1.tolist(),
         "pedestal": pedestal_th1,
+        "pedestal_range": PEDESTAL_RANGE["th1"]
     }
     
     # Global classification performance
@@ -148,7 +158,6 @@ def main():
 
     json_output = {
         "bin_time": bin_time.tolist(),
-        "pedestal_range": PEDESTAL_RANGE,
         "purity": purity,
         "efficiency": efficiency,
         "f_score": f_score,
@@ -227,9 +236,9 @@ def get_trigger_class(trigger_code):
         return 'None'
 
 
-def get_pedestal(binx_time, histo):
+def get_pedestal(binx_time, histo, pedestal_range):
 
-    mask = np.all((PEDESTAL_RANGE[0] < binx_time, binx_time < PEDESTAL_RANGE[1]), axis=0)
+    mask = np.all((pedestal_range[0] < binx_time, binx_time < pedestal_range[1]), axis=0)
     noise_histo = histo[mask]
     pedestal = np.mean(noise_histo)
     nbins = len(noise_histo)
