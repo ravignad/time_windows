@@ -252,12 +252,8 @@ def get_pedestal(binx_time, histo, pedestal_range):
 
 # Get the purity of a signal histogram given a noise pedestal
 def get_purity(residual_histo, pedestal):
-
     signal_histo = residual_histo - pedestal
-    signal = signal_histo.sum()
-    noise = pedestal * len(signal_histo)
-    purity = signal / (signal+noise)
-
+    purity = signal_histo.sum() / residual_histo.sum()
     return purity
 
 
