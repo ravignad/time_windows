@@ -196,7 +196,7 @@ def get_window(bin_time, residual_histo, pedestal):
     efficiency = get_efficiency(bin_time, residual_histo, pedestal, selection_window)
     print(f'Efficiency: {100*efficiency:.2f}%')
 
-    f_score = 2 * efficiency * purity / (efficiency + purity)
+    f_score = get_fscore(efficiency, purity)
     print(f'F-score: {100*f_score:.2f}%')
 
     return threshold, tlow, thigh, purity, efficiency
@@ -271,6 +271,12 @@ def get_efficiency(bin_time, residual_histo, pedestal, window):
     efficiency = signal_selected.sum() / signal_histo.sum()
 
     return efficiency
+
+def get_fscore(efficiency, purity, beta=1):
+
+    fscore = (1+beta**2)*efficiency*purity / (beta**2*efficiency+purity)
+
+    return fscore
 
 
 # Run starts here
