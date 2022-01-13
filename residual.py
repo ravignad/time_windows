@@ -191,7 +191,7 @@ def get_window(bin_time, residual_histo, pedestal):
     signal_histo = residual_histo - pedestal
     selection_window = np.arange(mini, maxi+1)  # include maximum bin
 
-    purity = get_purity(residual_histo[selection_window], pedestal)
+    purity = get_purity(bin_time, residual_histo, pedestal, (tlow, thigh))
     print(f'Purity: {100*purity:.2f}%')
 
     efficiency = signal_histo[selection_window].sum() / signal_histo.sum()
@@ -251,9 +251,14 @@ def get_pedestal(binx_time, histo, pedestal_range):
 
 
 # Get the purity of a signal histogram given a noise pedestal
-def get_purity(residual_histo, pedestal):
-    signal_histo = residual_histo - pedestal
-    purity = signal_histo.sum() / residual_histo.sum()
+def get_purity(bin_time, residual_histo, pedestal, window):
+
+    mask = np.all((window[0] <= bin_time, bin_time < window[1]), axis=0)
+    residual_selected = residual_histo[mask]
+
+    signal_selected = residual_selected - pedestal
+    purity = signal_selected.sum() / residual_selected.sum()
+
     return purity
 
 
