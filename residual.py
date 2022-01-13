@@ -176,11 +176,11 @@ def main():
     return
 
 
-def get_window(bin_time, residuals_histo, pedestal):
+def get_window(bin_time, residual_histo, pedestal):
 
     threshold = 1 / (1-BIN_PURITY) * pedestal   # minimum number of counts to select a bin
 
-    mini, maxi = find_limits(residuals_histo, threshold)
+    mini, maxi = find_limits(residual_histo, threshold)
 
     bin_width = bin_time[1] - bin_time[0]
     tlow = bin_time[mini] - 0.5 * bin_width
@@ -188,10 +188,10 @@ def get_window(bin_time, residuals_histo, pedestal):
 
     print(f'Selection window: ({tlow:.0f}, {thigh:.0f}) ns')
 
-    signal_histo = residuals_histo - pedestal
+    signal_histo = residual_histo - pedestal
     selection_window = np.arange(mini, maxi+1)  # include maximum bin
 
-    purity = get_purity(residuals_histo[selection_window], pedestal)
+    purity = get_purity(residual_histo[selection_window], pedestal)
     print(f'Purity: {100*purity:.2f}%')
 
     efficiency = signal_histo[selection_window].sum() / signal_histo.sum()
@@ -205,16 +205,16 @@ def get_window(bin_time, residuals_histo, pedestal):
 
 # Find the bins for the selection window
 # Return: index of the minimum and maximum bins of the selection window
-def find_limits(residuals_histo, threshold):
+def find_limits(residual_histo, threshold):
 
-    max_bin = np.argmax(residuals_histo)
+    max_bin = np.argmax(residual_histo)
     i = max_bin
-    while residuals_histo[i] > threshold:
+    while residual_histo[i] > threshold:
         i -= 1
     mini = i+1
 
     j = max_bin
-    while residuals_histo[j] > threshold:
+    while residual_histo[j] > threshold:
         j += 1
     maxi = j-1
 
@@ -251,9 +251,9 @@ def get_pedestal(binx_time, histo, pedestal_range):
 
 
 # Get the purity of a signal histogram given a noise pedestal
-def get_purity(residuals_histo, pedestal):
+def get_purity(residual_histo, pedestal):
 
-    signal_histo = residuals_histo - pedestal
+    signal_histo = residual_histo - pedestal
     signal = signal_histo.sum()
     noise = pedestal * len(signal_histo)
     purity = signal / (signal+noise)
