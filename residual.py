@@ -7,6 +7,8 @@ import numpy as np
 import pandas
 import json
 
+import class_perf
+
 # All times in nanoseconds
 
 # Global constants
@@ -190,13 +192,13 @@ def get_window(bin_time, residual_histo, pedestal):
 
     selection_window = (tlow, thigh)
 
-    purity = get_purity(bin_time, residual_histo, pedestal, selection_window)
+    purity = class_perf.get_purity(bin_time, residual_histo, pedestal, selection_window)
     print(f'Purity: {100*purity:.2f}%')
 
-    efficiency = get_efficiency(bin_time, residual_histo, pedestal, selection_window)
+    efficiency = class_perf.get_efficiency(bin_time, residual_histo, pedestal, selection_window)
     print(f'Efficiency: {100*efficiency:.2f}%')
 
-    f_score = get_fscore(efficiency, purity)
+    f_score = class_perf.get_fscore(efficiency, purity)
     print(f'F-score: {100*f_score:.2f}%')
 
     return threshold, tlow, thigh, purity, efficiency
@@ -247,36 +249,6 @@ def get_pedestal(binx_time, histo, pedestal_range):
     print(f'Pedestal = {pedestal:.1f} ± {pedestal_error:.1f}')
 
     return pedestal
-
-
-# Calculate the selection purity
-def get_purity(bin_time, residual_histo, pedestal, window):
-
-    mask = np.all((window[0] <= bin_time, bin_time < window[1]), axis=0)
-    residual_selected = residual_histo[mask]
-
-    signal_selected = residual_selected - pedestal
-    purity = signal_selected.sum() / residual_selected.sum()
-
-    return purity
-
-# Calculate the selection efficiency
-def get_efficiency(bin_time, residual_histo, pedestal, window):
-
-    signal_histo = residual_histo - pedestal
-
-    mask = np.all((window[0] <= bin_time, bin_time < window[1]), axis=0)
-    signal_selected = signal_histo[mask]
-
-    efficiency = signal_selected.sum() / signal_histo.sum()
-
-    return efficiency
-
-def get_fscore(efficiency, purity, beta=1):
-
-    fscore = (1+beta**2)*efficiency*purity / (beta**2*efficiency+purity)
-
-    return fscore
 
 
 # Run starts here
