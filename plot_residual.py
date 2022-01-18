@@ -6,7 +6,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import json
 
-PLOT_TYPE = ".pdf"
+import utils
 
 
 def main():
@@ -47,9 +47,7 @@ def main():
     plt.ylabel('Counts')
 
     plt.legend()
-    filename = "residual" + PLOT_TYPE
-    print("Residuals plotted in " + filename)
-    plt.savefig(filename)
+    utils.savefig("residual", "Residuals plotted in ")
 
     # Plot pedestals
     plt.figure()
@@ -115,10 +113,7 @@ def main():
     y = (th1_data["pedestal"], th1_data["pedestal"])
     plt.plot(x, y, lw=0.5)
 
-    plt.legend()
-    filename = "pedestal" + PLOT_TYPE
-    print("Pedestals plotted in " + filename)
-    plt.savefig(filename)
+    utils.savefig("pedestal", "Pedestals plotted in ")
 
 
 # Run starts here

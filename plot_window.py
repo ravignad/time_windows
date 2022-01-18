@@ -6,6 +6,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 import json
 
+import utils
+
 
 def plot_window(bin_time, bin_counts, pedestal, threshold, tlow, thigh, trigger_label):
 
@@ -32,17 +34,8 @@ def plot_window(bin_time, bin_counts, pedestal, threshold, tlow, thigh, trigger_
     plt.ylabel('Counts')
 
     filename = "window_" + trigger_label.lower()
-    savefig(filename)
+    utils.savefig(filename, "Selection window plotted in ")
 
-
-def savefig(filename):
-
-    print("Selection window plotted in " + filename + ".eps")
-    plt.savefig(filename + ".eps")
-    print("Selection window plotted in " + filename + ".jpg")
-    plt.savefig(filename + ".jpg")
-    print("Selection window plotted in " + filename + ".pdf")
-    plt.savefig(filename + ".pdf")
 
 def main():
 
