@@ -8,10 +8,12 @@ import pandas
 import json
 
 import class_perf
+import utils
 
 # All times in nanoseconds
 
 # Global constants
+EVENT_RANGE = (140000000000, 182440000000)
 BIN_PURITY = 0.95
 PLOT_TYPE = ".pdf"
 PEDESTAL_RANGE = {"tot": (5000, 8000),
@@ -39,11 +41,11 @@ def main():
     # df = df.sample(frac=0.1)
 
     # Select data from Jan 1, 2014 to Aug 31, 2018 as per sd750 paper
-    df = df[(140000000000 < df['event']) & (df['event'] < 182440000000)]
+    df = df[(EVENT_RANGE[0] < df['event']) & (df['event'] < EVENT_RANGE[1])]
     print(f'Number of selected residuals: {len(df.index)}')
 
     # Add trigger class
-    df['trigger_class'] = df['trigger_code'].apply(get_trigger_class)
+    df['trigger_class'] = df['trigger_code'].apply(utils.get_trigger_class)
 
     bin_edges = np.arange(start=TIME_RANGE[0], stop=TIME_RANGE[1], step=BIN_WIDTH)
 
@@ -220,23 +222,6 @@ def find_limits(residual_histo, threshold):
     maxi = j-1
 
     return mini, maxi
-
-
-# Map trigger code to the trigger type
-# Trigger hierarchy ToT -> ToTd -> MoPs -> Th2 -> Th1
-def get_trigger_class(trigger_code):
-    if trigger_code & 4 != 0:     # bit 3
-        return 'ToT'
-    elif trigger_code & 8 != 0:  # bit 4
-        return 'ToTd'
-    elif trigger_code & 16 != 0:  # bit 5
-        return 'MoPS'
-    elif trigger_code & 2 != 0:  # bit 2
-        return 'Th2'
-    elif trigger_code & 1 != 0:  # bit 1
-        return 'Th1'
-    else:
-        return 'None'
 
 
 def get_pedestal(binx_time, histo, pedestal_range):
