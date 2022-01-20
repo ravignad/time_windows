@@ -35,7 +35,7 @@ def main():
     output_filename = sys.argv[2]
     df = pandas.read_csv(residual_file, names=('event', 'station', 'residual', 'trigger_code'))
 
-    # Select 10% of the data to speed up testin
+    # Select 10% of the data to speed up testing
     # df = df.sample(frac=0.1)
 
     # Select data from Jan 1, 2014 to Aug 31, 2018 as per sd750 paper
