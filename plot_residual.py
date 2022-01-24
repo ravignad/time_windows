@@ -8,6 +8,8 @@ import json
 
 import utils
 
+plt.rcParams.update({'font.size': 22})
+
 
 def main():
 
@@ -34,19 +36,22 @@ def main():
     histo_th2 = np.array(th2_data["histo"])
     histo_th1 = np.array(th1_data["histo"])
 
-    plt.figure()
+    plt.figure(figsize=(9.6, 4.8))
     plt.yscale("log")
 
-    plt.plot(bin_time, histo_tot, drawstyle='steps', lw=0.5, label='ToT')
-    plt.plot(bin_time, histo_totd, drawstyle='steps', lw=0.5, label='ToTd')
-    plt.plot(bin_time, histo_mops, drawstyle='steps', lw=0.5, label='MoPS')
-    plt.plot(bin_time, histo_th2, drawstyle='steps', lw=0.5, label='Th2')
-    plt.plot(bin_time, histo_th1, drawstyle='steps', lw=0.5, label='Th1')
+    plt.plot(bin_time, histo_tot, drawstyle='steps', label='ToT')
+    plt.plot(bin_time, histo_totd, drawstyle='steps', label='ToTd')
+    plt.plot(bin_time, histo_mops, drawstyle='steps', label='MoPS')
+    plt.plot(bin_time, histo_th2, drawstyle='steps', label='Th2')
+    plt.plot(bin_time, histo_th1, drawstyle='steps', label='Th1')
 
     plt.xlabel('Residual time (ns)')
     plt.ylabel('Counts')
 
-    plt.legend()
+#    plt.legend()
+    plt.legend(bbox_to_anchor=(1.1, 1.05))
+    plt.tight_layout()
+
     utils.savefig("residual", "Residuals plotted in ")
 
     # Plot pedestals
@@ -113,6 +118,7 @@ def main():
     y = (th1_data["pedestal"], th1_data["pedestal"])
     plt.plot(x, y, lw=0.5)
 
+    plt.tight_layout()
     utils.savefig("pedestal", "Pedestals plotted in ")
 
 
