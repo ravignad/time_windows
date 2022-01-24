@@ -36,6 +36,7 @@ def main():
     histo_th2 = np.array(th2_data["histo"])
     histo_th1 = np.array(th1_data["histo"])
 
+    # Plot residual histrograms
     plt.figure(figsize=(9.6, 4.8))
     plt.yscale("log")
 
@@ -48,14 +49,13 @@ def main():
     plt.xlabel('Residual time (ns)')
     plt.ylabel('Counts')
 
-#    plt.legend()
     plt.legend(bbox_to_anchor=(1.1, 1.05))
     plt.tight_layout()
 
     utils.savefig("residual", "Residuals plotted in ")
 
     # Plot pedestals
-    plt.figure()
+    plt.figure(figsize=(9.6, 4.8))
 
     tot_pedestal_range = tot_data["pedestal_range"]
     tot_mask = np.all((tot_pedestal_range[0] < bin_time, bin_time < tot_pedestal_range[1]), axis=0)
@@ -80,17 +80,18 @@ def main():
 
     mask = np.all((xmin < bin_time, bin_time < xmax), axis=0)
 
-    plt.plot(bin_time[mask], histo_tot[mask], drawstyle='steps', lw=0.5, color='lightgray')
-    plt.plot(bin_time[mask], histo_totd[mask], drawstyle='steps', lw=0.5, color='lightgray')
-    plt.plot(bin_time[mask], histo_mops[mask], drawstyle='steps', lw=0.5, color='lightgray')
-    plt.plot(bin_time[mask], histo_th2[mask], drawstyle='steps', lw=0.5, color='lightgray')
-    plt.plot(bin_time[mask], histo_th1[mask], drawstyle='steps', lw=0.5, color='lightgray')
+    plt.plot(bin_time[mask], histo_tot[mask], drawstyle='steps', lw=0.5)
+    plt.plot(bin_time[mask], histo_totd[mask], drawstyle='steps', lw=0.5)
+    plt.plot(bin_time[mask], histo_mops[mask], drawstyle='steps', lw=0.5)
+    plt.plot(bin_time[mask], histo_th2[mask], drawstyle='steps', lw=0.5)
+    plt.plot(bin_time[mask], histo_th1[mask], drawstyle='steps', lw=0.5)
 
-    plt.plot(bin_time[tot_mask], histo_tot[tot_mask], drawstyle='steps', lw=0.5, label='ToT')
-    plt.plot(bin_time[totd_mask], histo_totd[totd_mask], drawstyle='steps', lw=0.5, label='ToTd')
-    plt.plot(bin_time[mops_mask], histo_mops[mops_mask], drawstyle='steps', lw=0.5, label='MoPS')
-    plt.plot(bin_time[th2_mask], histo_th2[th2_mask], drawstyle='steps', lw=0.5, label='Th2')
-    plt.plot(bin_time[th1_mask], histo_th1[th1_mask], drawstyle='steps', lw=0.5, label='Th1')
+    plt.gca().set_prop_cycle(None)
+    plt.plot(bin_time[tot_mask], histo_tot[tot_mask], drawstyle='steps', label='ToT')
+    plt.plot(bin_time[totd_mask], histo_totd[totd_mask], drawstyle='steps', label='ToTd')
+    plt.plot(bin_time[mops_mask], histo_mops[mops_mask], drawstyle='steps', label='MoPS')
+    plt.plot(bin_time[th2_mask], histo_th2[th2_mask], drawstyle='steps', label='Th2')
+    plt.plot(bin_time[th1_mask], histo_th1[th1_mask], drawstyle='steps', label='Th1')
 
     plt.xlabel('Residual time (ns)')
     plt.ylabel('Counts')
@@ -118,6 +119,7 @@ def main():
     y = (th1_data["pedestal"], th1_data["pedestal"])
     plt.plot(x, y, lw=0.5)
 
+    plt.legend(bbox_to_anchor=(1.1, 1.05))
     plt.tight_layout()
     utils.savefig("pedestal", "Pedestals plotted in ")
 
