@@ -1,12 +1,12 @@
 # Plot the windows of the three SD arrays
 
-import sys
 import numpy as np
 import matplotlib.pyplot as plt
 
 import utils
 
 plt.rcParams.update({'font.size': 22})
+
 
 def main():
 
