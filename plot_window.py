@@ -8,30 +8,40 @@ import json
 
 import utils
 
+plt.rcParams.update({'font.size': 22})
+
 
 def plot_window(bin_time, bin_counts, pedestal, threshold, tlow, thigh, trigger_label):
 
     plt.figure()
-    ax = plt.gca()
     plt.yscale("log")
 
-    plt.text(0.9, 0.9, trigger_label, fontsize='large', ha='right', transform=ax.transAxes)
+    plt.text(0.9, 0.85, trigger_label, fontsize='large', ha='right', transform=plt.gca().transAxes)
 
-    mask = np.all((tlow < bin_time, bin_time < thigh), axis=0)
+    ymin = 1
+    mask = np.all((tlow < bin_time, bin_time < thigh, bin_counts > ymin), axis=0)
 
-    plt.plot(bin_time, bin_counts, drawstyle='steps', lw=0.5, label='Data')
-    plt.fill_between(bin_time[mask], bin_counts[mask], step="pre", alpha=0.4)
+    plt.plot(bin_time, bin_counts, drawstyle='steps', label='Data')
+    plt.fill_between(bin_time[mask], y1=bin_counts[mask], y2=ymin, step="pre", alpha=0.5)  # selected
+#    plt.fill_between(bin_time[mask], y1=bin_counts[mask], y2=pedestal, step="pre", alpha=1)  # signal selected
+
+#    mask2 = np.all((-2250 < bin_time, bin_time < 5000), axis=0)
+#    plt.fill_between(bin_time[mask2], y1=bin_counts[mask2], y2=pedestal, step="pre", alpha=0.25)   # signal
 
     x = (bin_time[0], bin_time[-1])
-    p = plt.plot(x, (pedestal, pedestal), lw=0.5, ls='--', label='Pedestal')
-    plt.text(bin_time[mask][0], 0.9*pedestal, 'Pedestal', fontsize='small', va='top', color=p[0].get_color())
+    plt.plot(x, (pedestal, pedestal), ls='--', color='tab:orange', label='Pedestal')
+    plt.text(0.7, 1.3*pedestal, 'Pedestal', fontsize='small', color='black',
+             transform=plt.gca().get_yaxis_transform())
 
-    p = plt.plot(x, (threshold, threshold), lw=0.5, ls='--', label='Threshold')
-    plt.text(0.6, 1.1*threshold, 'Threshold', fontsize='small', color=p[0].get_color(),
-             transform=ax.get_yaxis_transform())
+    plt.plot(x, (threshold, threshold), ls='--', color='tab:orange', label='Threshold')
+    plt.text(0.7, 1.2*threshold, 'Threshold', fontsize='small', color='black',
+             transform=plt.gca().get_yaxis_transform())
 
     plt.xlabel('Residual time (ns)')
     plt.ylabel('Counts')
+
+    plt.gca().set_ylim(bottom=ymin)
+    plt.tight_layout()
 
     filename = "window_" + trigger_label.lower()
     utils.savefig(filename, "Selection window plotted in ")
