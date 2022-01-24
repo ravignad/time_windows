@@ -26,3 +26,5 @@ def savefig(filename, message):
     plt.savefig(filename + ".jpg")
     print("Selection window plotted in " + filename + ".pdf")
     plt.savefig(filename + ".pdf")
+    print("Selection window plotted in " + filename + ".svg")
+    plt.savefig(filename + ".svg")
