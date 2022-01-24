@@ -1,4 +1,4 @@
-# Plot the windows of the three SD arrays
+# Plot a comparison of the new SD1500 windows against the old one
 
 import numpy as np
 import matplotlib.pyplot as plt
