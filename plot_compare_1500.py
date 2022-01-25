@@ -13,7 +13,7 @@ def main():
     fig = plt.figure(figsize=(6.4, 4.8))
     ax = fig.subplots()
 
-    trigger = ("Th1", "Th2", "MoPS", "ToTd", "ToT", "Old")
+    trigger = ("Th1", "Th2", "MoPS", "ToTd", "ToT", "Previous")
     y_pos = np.arange(len(trigger))
 
     tlow1500 = np.flip(np.array([-1000, -750, -775, -525, -150, -100]))

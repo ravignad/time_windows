@@ -24,7 +24,7 @@ def main():
     thigh_paper = np.flip(np.array([1454, 2285, 2883, 1379, 1379]))
     twidth_paper = thigh_paper - tlow_paper
 
-    ax.barh(y_pos+0.2, height=0.3, left=tlow750, width=twidth750, label="New")
+    ax.barh(y_pos+0.2, height=0.3, left=tlow750, width=twidth750, label="This work")
     ax.barh(y_pos-0.2, height=0.3, left=tlow_paper, width=twidth_paper, label="Paper")
 
     ax.set_yticks(y_pos, labels=trigger)
