@@ -1,4 +1,4 @@
-# Plot the purity and efficiency
+# Plot the purity and efficiency by trigger type for the SD1500
 
 import sys
 import numpy as np
