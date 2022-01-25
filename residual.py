@@ -72,6 +72,7 @@ def main():
     threshold_tot, tlow_tot, thigh_tot, pur_tot, effi_tot = get_window(bin_time, histo_tot, pedestal_tot)
 
     tot_output = {
+        "counts": ntot.tolist(),
         "threshold": threshold_tot,
         "tlow": tlow_tot,
         "thigh": thigh_tot,
@@ -88,6 +89,7 @@ def main():
     threshold_totd, tlow_totd, thigh_totd, pur_totd, effi_totd = get_window(bin_time, histo_totd, pedestal_totd)
 
     totd_output = {
+        "counts": ntotd.tolist(),
         "threshold": threshold_totd,
         "tlow": tlow_totd,
         "thigh": thigh_totd,
@@ -104,6 +106,7 @@ def main():
     threshold_mops, tlow_mops, thigh_mops, pur_mops, effi_mops = get_window(bin_time, histo_mops, pedestal_mops)
 
     mops_output = {
+        "counts": nmops.tolist(),
         "threshold": threshold_mops,
         "tlow": tlow_mops,
         "thigh": thigh_mops,
@@ -120,6 +123,7 @@ def main():
     threshold_th2, tlow_th2, thigh_th2, pur_th2, effi_th2 = get_window(bin_time, histo_th2, pedestal_th2)
 
     th2_output = {
+        "counts": nth2.tolist(),
         "threshold": threshold_th2,
         "tlow": tlow_th2,
         "thigh": thigh_th2,
@@ -136,6 +140,7 @@ def main():
     threshold_th1, tlow_th1, thigh_th1, pur_th1, effi_th1 = get_window(bin_time, histo_th1, pedestal_th1)
 
     th1_output = {
+        "counts": nth1.tolist(),
         "threshold": threshold_th1,
         "tlow": tlow_th1,
         "thigh": thigh_th1,
