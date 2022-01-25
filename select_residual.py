@@ -1,3 +1,5 @@
+# Select sample delayed detectors
+
 import sys
 import pandas
 
