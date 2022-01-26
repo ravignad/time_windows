@@ -19,22 +19,31 @@ def plot_window(bin_time, bin_counts, pedestal, threshold, tlow, thigh, trigger_
     plt.text(0.9, 0.85, trigger_label, fontsize='large', ha='right', transform=plt.gca().transAxes)
 
     ymin = 1
-    mask = np.all((tlow < bin_time, bin_time < thigh, bin_counts > ymin), axis=0)
 
-    plt.plot(bin_time, bin_counts, drawstyle='steps', label='Data')
-    plt.fill_between(bin_time[mask], y1=bin_counts[mask], y2=ymin, step="pre", alpha=0.5)  # selected
-#    plt.fill_between(bin_time[mask], y1=bin_counts[mask], y2=pedestal, step="pre", alpha=1)  # signal selected
+    # Filter out points below ymin (they appear in the .svg ouput)
+    bin_time2 = bin_time[bin_counts >= ymin]
+    bin_counts2 = bin_counts[bin_counts >= ymin]
 
-#    mask2 = np.all((-2250 < bin_time, bin_time < 5000), axis=0)
-#    plt.fill_between(bin_time[mask2], y1=bin_counts[mask2], y2=pedestal, step="pre", alpha=0.25)   # signal
+    mask = np.all((tlow < bin_time2, bin_time2 < thigh), axis=0)
+
+    plt.plot(bin_time2, bin_counts2, drawstyle='steps', color='tab:red', label='Data')
+
+    # Plot selected region
+    plt.fill_between(bin_time2[mask], y1=ymin, y2=bin_counts2[mask], step="pre", color='tab:blue', alpha=0.5)
+
+     # Plot four classification regions
+#    plt.fill_between(bin_time2[mask], y1=pedestal, y2=bin_counts2[mask], step="pre", color='tab:orange', alpha=0.5)  # selected signal
+#    plt.fill_between(bin_time2[mask], y1=ymin, y2=pedestal, color='tab:blue', alpha=0.5)  # selected noise
+#    plt.fill_between(bin_time2, y1=bin_counts2, y2=pedestal, step="pre", color='tab:orange', alpha=0.5)   # all signal
+#    plt.fill_between(bin_time2, y1=ymin, y2=pedestal, color='tab:blue', alpha=0.5)  # all noise
 
     x = (bin_time[0], bin_time[-1])
-    plt.plot(x, (pedestal, pedestal), ls='--', color='tab:orange', label='Pedestal')
-    plt.text(0.7, 1.3*pedestal, 'Pedestal', fontsize='small', color='black',
+    plt.plot(x, (pedestal, pedestal), ls='--', color='tab:grey', label='Pedestal')
+    plt.text(0.7, 1.3*pedestal, 'Pedestal', fontsize='small', color='tab:grey',
              transform=plt.gca().get_yaxis_transform())
 
-    plt.plot(x, (threshold, threshold), ls='--', color='tab:orange', label='Threshold')
-    plt.text(0.7, 1.2*threshold, 'Threshold', fontsize='small', color='black',
+    plt.plot(x, (threshold, threshold), ls='--', color='tab:grey', label='Threshold')
+    plt.text(0.7, 1.2*threshold, 'Threshold', fontsize='small', color='tab:grey',
              transform=plt.gca().get_yaxis_transform())
 
     plt.xlabel('Residual time (ns)')
