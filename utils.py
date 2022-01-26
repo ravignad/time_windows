@@ -1,3 +1,6 @@
+
+import math
+import numpy as np
 from matplotlib import pyplot as plt
 
 
@@ -28,3 +31,28 @@ def savefig(filename, message):
     plt.savefig(filename + ".pdf")
     print("Selection window plotted in " + filename + ".svg")
     plt.savefig(filename + ".svg")
+
+def polar2car(theta, phi):
+    x = math.sin(theta) * math.cos(phi)
+    y = math.sin(theta) * math.sin(phi)
+    z = math.cos(theta)
+    return (x, y, z)
+
+""" Returns the angle in degrees between two directions"""
+def directions_angle(theta1, phi1, theta2, phi2):
+    v1 = polar2car(math.radians(theta1), math.radians(phi1))
+    v2 = polar2car(math.radians(theta2), math.radians(phi2))
+    return math.degrees(np.arccos(np.dot(v1, v2)))
+
+
+# Run starts here
+if __name__ == "__main__":
+
+    theta1, phi1 = 11.5, 66.3
+    theta2, phi2 = 17.9, 49.6
+
+    delta_direction = directions_angle(theta1, phi1, theta2, phi2)
+    print(f'Angle between directions ({theta1}, {phi1}) and ({theta2}, {phi2}) = {delta_direction:.1f} degrees')
+
+
+
