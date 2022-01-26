@@ -42,7 +42,12 @@ def main():
 
     # Select data from Jan 1, 2014 to Aug 31, 2018 as per sd750 paper
     df = df[(EVENT_RANGE[0] < df['event']) & (df['event'] < EVENT_RANGE[1])]
-    print(f'Number of selected residuals: {len(df.index)}')
+    nevents = df['event'].nunique()
+    print(f'Number of events: {nevents}')
+    nresiduals = len(df.index)
+    print(f'Number of residuals: {nresiduals}')
+    print(f'Residuals per event: {nresiduals/nevents:.2f}')
+
 
     # Add trigger class
     df['trigger_class'] = df['trigger_code'].apply(utils.get_trigger_class)
@@ -163,9 +168,9 @@ def main():
 
     print('Classification performance')
     print(f'Number of residuals between {TIME_RANGE[0]} and {TIME_RANGE[1]} ns: {nresiduals}')
-    print(f'Purity: {100*purity:.2f}%')
-    print(f'Efficiency: {100*efficiency:.2f}%')
-    print(f'F-score: {100*f_score:.2f}%')
+    print(f'Purity: {100*purity:.3f}%')
+    print(f'Efficiency: {100*efficiency:.3f}%')
+#    print(f'F-score: {100*f_score:.3f}%')
 
     json_output = {
         "bin_time": bin_time.tolist(),
