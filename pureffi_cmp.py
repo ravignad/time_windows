@@ -1,4 +1,4 @@
-# Compare the purity and efficiency
+# Plot the purity and efficiency of two conditions specified in the input file
 
 import sys
 import numpy as np
