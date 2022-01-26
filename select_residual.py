@@ -23,8 +23,8 @@ def main():
    # Add trigger class
     df['trigger_class'] = df['trigger_code'].apply(utils.get_trigger_class)
 
-    df_tot = df[(df['trigger_class'] == 'ToT') & (df['residual'] > 1500) & (df['residual'] < 1900)].head()
-    print(df_tot)
+#    df_tot = df[(df['trigger_class'] == 'ToT') & (1500 < df['residual'] ) & (df['residual'] < 1900)].head()
+#    print(df_tot)
 
 #    df_totd = df[ (df['trigger_class'] == 'ToTd') & (df['residual'] > 2000) ].head()
 #    print(df_totd)
@@ -32,8 +32,8 @@ def main():
 #    df_mops = df[(df['trigger_class'] == 'MoPS') & (df['residual'] > 2500)].head()
 #    print(df_mops)
 
-#    df_th2 = df[(df['trigger_class'] == 'Th2') & (df['residual'] > 400)].head()
-#    print(df_th2)
+    df_th2 = df[(df['trigger_class'] == 'Th2') & (1000 < df['residual']) & (df['residual'] < 1379)].head()
+    print(df_th2)
 
 #    df_th1 = df[(df['trigger_class'] == 'Th1') & (df['residual'] > 500)].head()
 #    print(df_th1)
