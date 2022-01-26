@@ -63,11 +63,11 @@ def main():
 
 def trigger_perf(bin_time, histo, pedestal, selection_window):
     purity = class_perf.get_purity(bin_time, histo, pedestal, selection_window)
-    print(f'Purity: {100 * purity:.2f}%')
+    print(f'Purity: {100 * purity:.3f}%')
     efficiency = class_perf.get_efficiency(bin_time, histo, pedestal, selection_window)
-    print(f'Efficiency: {100 * efficiency:.2f}%')
-    f_score = class_perf.get_fscore(efficiency, purity, BETA)
-    print(f'F-score: {100 * f_score:.2f}%')
+    print(f'Efficiency: {100 * efficiency:.3f}%')
+#    f_score = class_perf.get_fscore(efficiency, purity, BETA)
+#    print(f'F-score: {100 * f_score:.3f}%')
 
 
 # Run starts here
