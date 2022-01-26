@@ -14,7 +14,7 @@ BETA = 1
 def main():
 
     if len(sys.argv) != 2:
-        print("Usage " + sys.argv[0] + "tlow thigh [json input file]")
+        print("Usage " + sys.argv[0] + " [json input file]")
         exit(1)
 
     # Read command line arguments
@@ -72,8 +72,8 @@ def main():
     efficiency = (ntot * eff_tot + ntotd * eff_totd + nmops * eff_mops
                   + nth2 * eff_th2 + nth1 * eff_th1) / nresiduals
 
-    print(f'Purity: {100 * purity:.2f}%')
-    print(f'Efficiency: {100 * efficiency:.2f}%')
+    print(f'Purity: {100 * purity:.3f}%')
+    print(f'Efficiency: {100 * efficiency:.3f}%')
 
 
 def trigger_perf(bin_time, histo, pedestal, selection_window):
