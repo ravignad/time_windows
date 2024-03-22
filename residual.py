@@ -1,5 +1,5 @@
 # Calculate the time windows to select the SD detectors that participated in the reconstruction of events
-# A difference selection window is calculated for the trigger types: ToT, ToTd, MoPS, Th2, and Th1
+# A different selection window is calculated for the trigger types: ToT, ToTd, MoPS, Th2, and Th1
 
 import sys
 import math
